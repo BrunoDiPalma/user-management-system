@@ -3,7 +3,7 @@ import bcrypt from "bcrypt"
 
 export async function getUsers (req, res) {
     try {
-        const [rows] = await pool.query("SELECT id, nome, email, pais, genero from USERS")
+        const [rows] = await pool.query("SELECT id, nome, email, pais, genero from users")
         return res.status(200).json(rows)
     }catch (error) {
         console.error(error)
@@ -15,7 +15,7 @@ export async function GetUserbyID (req, res) {
     try {
         const { id } = req.params
 
-        const [rows] = await pool.query("SELECT id, nome, email from USERS where ID = ?",
+        const [rows] = await pool.query("SELECT id, nome, email from users where ID = ?",
             [id]
         )
         if (rows.length === 0) {
@@ -62,7 +62,7 @@ export async function postUsers(req, res) {
         })
 
     }catch (error) {
-        console.error(error)
+        console.error("ERRO DETALHADO", error)
         return res.status(500).json({ error: "Erro ao cadastrar usuário."})
     }
 }
@@ -88,7 +88,7 @@ export async function loginUser (req, res) {
         const senhaValida = await bcrypt.compare(senha, user.senha)
 
         if(!senhaValida) {
-            return res.status().json({ error: "E-mail ou senha inválidos"})
+            return res.status(401).json({ error: "E-mail ou senha inválidos"})
         }
 
         return res.status(200).json({

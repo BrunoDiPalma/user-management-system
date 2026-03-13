@@ -1,5 +1,7 @@
 import pool from "../database/database.js"
 import bcrypt from "bcrypt"
+import jwt from "jsonwebtoken"
+import "dotenv/config"
 
 export async function getUsers (req, res) {
     try {
@@ -67,42 +69,48 @@ export async function postUsers(req, res) {
     }
 }
 
-export async function loginUser (req, res) {
+export async function loginUser(req, res){
     try {
         const { email, senha } = req.body
 
-        if(!email || !senha) {
-            return res.status(400).json({ error: "E-mail e senha são obrigatórios"})
+        if(!email || !senha){
+            return res.status(400).json({ error: "E-mail e senha são obrigatórios!"})
         }
 
-        const [result] = await pool.query("SELECT id, nome, email, senha FROM users WHERE email = ?",
+        const [result] = await pool.query(
+            "SELECT id, nome, email, senha FROM users WHERE email = ?",
             [email]
         )
 
-        if (result.length === 0) {
-            return res.status(401).json({ error: "E-mail ou senha inválidos"})
+        if(result.length === 0){
+            return res.status(401).json({ error: "E-mail ou senha inválidos!"})
         }
 
         const user = result[0]
 
         const senhaValida = await bcrypt.compare(senha, user.senha)
 
-        if(!senhaValida) {
-            return res.status(401).json({ error: "E-mail ou senha inválidos"})
+        if(!senhaValida){
+            return res.status(401).json({ error: "E-mail ou senha inválidos!"})
         }
 
+        const token = jwt.sign(
+            { id: user.id, email: user.email},
+            process.env.JWT_SECRET,
+            { expiresIn: "1h"}
+        )
+
         return res.status(200).json({
-            mensagem: "Login realizado com sucesso",
-            usuário: {
-                id: user.id,
-                nome: user.nome,
-                email: user.email
-            }
+            message: "Login realizado com sucesso!",
+            token: token,
+            id: user.id,
+            nome: user.nome,
+            email: user.email
         })
 
-    }catch (error) {
-    console.log(error)
-        return res.status(500).json({ error: "E-mail ou senha incorretos"})
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({ error: "Erro ao realizar login"})
     }
 }
 

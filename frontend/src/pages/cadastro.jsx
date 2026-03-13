@@ -1,6 +1,12 @@
-import { useState, useEffect } from "react"
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-export default function Cadastro() {
+export default function Cadastro(){
+
+    const navigate = useNavigate()
+
+    const [erro, setErro] = useState("")
+    
     const [formData, setFormData] = useState({
         nome: "",
         email: "",
@@ -8,14 +14,18 @@ export default function Cadastro() {
         data_nascimento: "",
         pais: "",
         genero: ""
-        
     })
 
-    const [message, setMessage] = useState("")
-    const [users, setUsers] = useState([])
+    function mostrarErro(mensagem){
+        setErro(mensagem)
 
-    function handleChange(event) {
-        const { name, value } = event.target
+        setTimeout(() => {
+            setErro("")
+        }, 3000)
+    }
+
+    function handleChange(event){
+        const { name , value } = event.target
 
         setFormData({
             ...formData,
@@ -26,6 +36,11 @@ export default function Cadastro() {
     async function handleSubmit(event) {
         event.preventDefault()
 
+        if (Object.values(formData).some(value => !value)) {
+            mostrarErro("Preencha todos os campos!")
+    return
+}
+
         try {
             const response = await fetch("http://localhost:5000/users", {
                 method: "POST",
@@ -33,116 +48,90 @@ export default function Cadastro() {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(formData),
-            })
+        })
 
-            const data = await response.json()
+        const data = await response.json()
 
-            setMessage("Usuário criado com sucesso!")
+        if(response.ok){
+            console.log("Usuário cadastrado:", data)
+            navigate("/login")
+        } else {
+            mostrarErro(data.error || "Erro ao cadastrar usuário")
+        }
 
-            setTimeout(() => {
-                setMessage("")
-            }, 3000)
+        console.log(data)
 
-            console.log(data)
-
-            setFormData({
-                nome: "",
-                email: "",
-                senha: "",
-                data_nascimento: "",
-                pais: "",
-                genero: ""
-            })
-
-            await fetchUsers()
-
-        } catch(error) {
+        } catch (error) {
             console.error("Erro ao cadastrar usuário", error)
         }
     }
 
-    async function fetchUsers() {
-        try {
-            const response = await fetch("http://localhost:5000/users")
-            const data = await response.json()
-
-            setUsers(data)
-        } catch (error) {
-            console.error("Erro ao buscar usuários", error)
-        }
-    }
-
-    useEffect(() => {
-            fetchUsers()
-        }, [])
-
     return (
+        <form onSubmit={handleSubmit}>
+
         <div>
-            <h1>Cadastro de usuário</h1>
-            {message && <p>{message}</p>}
+            <h1>Crie sua conta</h1>
 
-            <h2>Usuários cadastrados</h2>
-            <ul>
-                {users.map((user) => (
-                    <li key={user.id}>
-                        {user.nome} - {user.email} - {user.genero}
-                    </li>
-                ))}
-            </ul>
+            <input 
+            type="text"
+            name="nome"
+            placeholder="Nome"
+            value={formData.nome}
+            onChange={handleChange}
+            />
 
-            <form onSubmit={handleSubmit}>
-                <input
-                    type="text"
-                    name="nome"
-                    placeholder="Nome"
-                    value={formData.nome}
-                    onChange={handleChange}
-                />
+            <input 
+            type="email"
+            name="email"
+            placeholder="E-mail"
+            value={formData.email}
+            onChange={handleChange}
+            />
 
-                <input
-                    type="email"
-                    name="email"
-                    placeholder="E-mail"
-                    value={formData.email}
-                    onChange={handleChange}
-                />
+            <input 
+            type="password"
+            name="senha"
+            placeholder="Senha"
+            value={formData.senha}
+            onChange={handleChange}
+            />
 
-                <input
-                    type="password"
-                    name="senha"
-                    placeholder="Senha"
-                    value={formData.senha}
-                    onChange={handleChange}
-                />
+            <input 
+            type="date"
+            name="data_nascimento"
+            placeholder="Digite sua data de nascimento"
+            value={formData.data_nascimento}
+            onChange={handleChange}
+            />
 
-                <input
-                    type="date"
-                    name="data_nascimento"
-                    value={formData.data_nascimento}
-                    onChange={handleChange}
-                />
+            <input 
+            type="text"
+            name="pais"
+            placeholder="País"
+            value={formData.pais}
+            onChange={handleChange}
+            />
 
-                <input
-                    type="text"
-                    name="pais"
-                    placeholder="País"
-                    value={formData.pais}
-                    onChange={handleChange}
-                />
+            <select name="genero"
+            value= {formData.genero}
+            onChange={handleChange}>
 
-                <select
-                    name="genero"
-                    value={formData.genero}
-                    onChange={handleChange}
-                >
-                    <option value="">Selecione o gênero</option>
-                    <option value="Masculino">Masculino</option>
-                    <option value="Feminino">Feminino</option>
-                    <option value="Outro">Outro</option>
-                </select>
+                <option value="">Selecione o seu gênero</option>
+                <option value="Masculino">Masculino</option>
+                <option value="Feminino">Feminino</option>
+                <option value="Outro">Outro</option>
+            </select>
 
-                <button type="submit">Cadastrar</button>
-            </form>
+            {erro && <p>{erro}</p>}
+
+            <button type ="submit">
+            Criar cadastro
+        </button>
+
+            <button type="button" onClick={() => navigate("/login")}>
+            Já tenho conta
+        </button>
         </div>
+        </form>
     )
 }

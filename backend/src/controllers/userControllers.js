@@ -1,160 +1,171 @@
-import pool from "../database/database.js"
-import bcrypt from "bcrypt"
-import jwt from "jsonwebtoken"
-import "dotenv/config"
+import pool from "../database/database.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import "dotenv/config";
 
-export async function getUsers (req, res) {
-    try {
-        const [rows] = await pool.query("SELECT id, nome, email, pais, genero from users")
-        return res.status(200).json(rows)
-    }catch (error) {
-        console.error(error)
-        return res.status(500).json({ error: "Erro ao buscar usuário"})
-    }
+export async function getUsers(req, res) {
+  try {
+    const [rows] = await pool.query(
+      "SELECT id, nome, email, pais, genero from users",
+    );
+    return res.status(200).json(rows);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Erro ao buscar usuário" });
+  }
 }
 
-export async function GetUserbyID (req, res) {
-    try {
-        const { id } = req.params
+export async function GetUserbyID(req, res) {
+  try {
+    const { id } = req.params;
 
-        const [rows] = await pool.query("SELECT id, nome, email from users where ID = ?",
-            [id]
-        )
-        if (rows.length === 0) {
-            return res.status(404).json({ error: "Nenhum usuário localizado"})
-        }
-        return res.status(200).json (rows[0])
-
-    }catch(error) {
-    console.log(error)
-    return res.status(500).json({ error: "Erro ao buscar usuário"})
-}}
+    const [rows] = await pool.query(
+      "SELECT id, nome, email from users where ID = ?",
+      [id],
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Nenhum usuário localizado" });
+    }
+    return res.status(200).json(rows[0]);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Erro ao buscar usuário" });
+  }
+}
 
 export async function postUsers(req, res) {
-        try {
-        const { nome, email, data_nascimento, senha, pais, genero } = req.body
-        
-        if (!nome || !email || !data_nascimento || !senha || !pais || !genero)
-        return res.status(400).json({ error: "Todos os campos são obrigatórios!"})
+  try {
+    const { nome, email, data_nascimento, senha, pais, genero } = req.body;
 
-        const [emailExists] = await pool.query(
-            "SELECT ID from users where email = ?",
-            [email]
-        )
+    if (!nome || !email || !data_nascimento || !senha || !pais || !genero)
+      return res
+        .status(400)
+        .json({ error: "Todos os campos são obrigatórios!" });
 
-        if(emailExists.length > 0) {
-            return res.status(409).json({ error: "Este e-mail já está em uso"})
-        }
+    const [emailExists] = await pool.query(
+      "SELECT ID from users where email = ?",
+      [email],
+    );
 
-        const saltRounds = 10
-        const senhaHash = await bcrypt.hash(senha, saltRounds)
-        
-        const [result] = await pool.query(`INSERT INTO users (nome, email, data_nascimento, senha, pais, genero)
+    if (emailExists.length > 0) {
+      return res.status(409).json({ error: "Este e-mail já está em uso" });
+    }
+
+    const saltRounds = 10;
+    const senhaHash = await bcrypt.hash(senha, saltRounds);
+
+    const [result] = await pool.query(
+      `INSERT INTO users (nome, email, data_nascimento, senha, pais, genero)
         VALUES (?, ?, ?, ?, ?, ?)`,
-        [nome, email, data_nascimento, senhaHash, pais, genero])
+      [nome, email, data_nascimento, senhaHash, pais, genero],
+    );
 
-        return res.status(201).json({ mensagem: "Usuário criado com sucesso!",
-            usuario: { 
-            id: result.insertId,
-            nome,
-            email,
-            pais,
-            genero
-            }
-        })
-
-    }catch (error) {
-        console.error("ERRO DETALHADO", error)
-        return res.status(500).json({ error: "Erro ao cadastrar usuário."})
-    }
+    return res.status(201).json({
+      mensagem: "Usuário criado com sucesso!",
+      usuario: {
+        id: result.insertId,
+        nome,
+        email,
+        pais,
+        genero,
+      },
+    });
+  } catch (error) {
+    console.error("ERRO DETALHADO", error);
+    return res.status(500).json({ error: "Erro ao cadastrar usuário." });
+  }
 }
 
-export async function loginUser(req, res){
-    try {
-        const { email, senha } = req.body
+export async function loginUser(req, res) {
+  try {
+    const { email, senha } = req.body;
 
-        if(!email || !senha){
-            return res.status(400).json({ error: "E-mail e senha são obrigatórios!"})
-        }
-
-        const [result] = await pool.query(
-            "SELECT id, nome, email, senha FROM users WHERE email = ?",
-            [email]
-        )
-
-        if(result.length === 0){
-            return res.status(401).json({ error: "E-mail ou senha inválidos!"})
-        }
-
-        const user = result[0]
-
-        const senhaValida = await bcrypt.compare(senha, user.senha)
-
-        if(!senhaValida){
-            return res.status(401).json({ error: "E-mail ou senha inválidos!"})
-        }
-
-        const token = jwt.sign(
-            { id: user.id, email: user.email},
-            process.env.JWT_SECRET,
-            { expiresIn: "1h"}
-        )
-
-        return res.status(200).json({
-            message: "Login realizado com sucesso!",
-            token: token,
-            id: user.id,
-            nome: user.nome,
-            email: user.email
-        })
-
-    } catch (error) {
-        console.error(error)
-        return res.status(500).json({ error: "Erro ao realizar login"})
+    if (!email || !senha) {
+      return res
+        .status(400)
+        .json({ error: "E-mail e senha são obrigatórios!" });
     }
+
+    const [result] = await pool.query(
+      "SELECT id, nome, email, senha FROM users WHERE email = ?",
+      [email],
+    );
+
+    if (result.length === 0) {
+      return res.status(401).json({ error: "E-mail ou senha inválidos!" });
+    }
+
+    const user = result[0];
+
+    const senhaValida = await bcrypt.compare(senha, user.senha);
+
+    if (!senhaValida) {
+      return res.status(401).json({ error: "E-mail ou senha inválidos!" });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" },
+    );
+
+    return res.status(200).json({
+      message: "Login realizado com sucesso!",
+      token: token,
+      id: user.id,
+      nome: user.nome,
+      email: user.email,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Erro ao realizar login" });
+  }
 }
 
-export async function updateUser (req, res) {
-    try {
-        const {id} = req.params
-        const { nome, email, data_nascimento, pais, genero} = req.body
+export async function updateUser(req, res) {
+  try {
+    const { id } = req.params;
+    const { nome, email, data_nascimento, pais, genero } = req.body;
 
-        const [result] = await pool.query("UPDATE users SET nome = ?, email = ?, data_nascimento = ?, pais = ?, genero = ? where ID = ?",
-            [nome, email, data_nascimento, pais, genero, id]
-        )
-        if (result.affectedRows === 0){
-            return res.status(404).json({ error: "Usuário não encontrado"})
-        }
-
-        if(result.changedRows === 0){
-            return res.status(200).json({ mensagem: "Nenhuma alteração foi realizada"})
-        }
-
-        return res.status(200).json({ mensagem: "Usuário atualizado com sucesso!"})
-
-    } catch(error){
-        console.log(error)
-        return res.status(500).json({ error: "Erro ao atualizar usuário"})
+    const [result] = await pool.query(
+      "UPDATE users SET nome = ?, email = ?, data_nascimento = ?, pais = ?, genero = ? where ID = ?",
+      [nome, email, data_nascimento, pais, genero, id],
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Usuário não encontrado" });
     }
+
+    if (result.changedRows === 0) {
+      return res
+        .status(200)
+        .json({ mensagem: "Nenhuma alteração foi realizada" });
+    }
+
+    return res
+      .status(200)
+      .json({ mensagem: "Usuário atualizado com sucesso!" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Erro ao atualizar usuário" });
+  }
 }
 
 export async function deleteUser(req, res) {
-    try {
-        const { id } = req.params
-        if (!id) {
-            return res.status(400).json({ error: "ID é obrigatório"})
-        }
-
-        const [result] = await pool.query("DELETE FROM users where id = ?",
-            [id]
-        )
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ error: "Usuário não encontrado"})
-        }
-        return res.status(200).json({ mensagem: "Usuário excluído com sucesso"})
-
-    }catch (error) {
-        console.error(error)
-        return res.status(500).json({ error: "Não foi possível excluir este usuário"})
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ error: "ID é obrigatório" });
     }
+
+    const [result] = await pool.query("DELETE FROM users where id = ?", [id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Usuário não encontrado" });
+    }
+    return res.status(200).json({ mensagem: "Usuário excluído com sucesso" });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ error: "Não foi possível excluir este usuário" });
+  }
 }

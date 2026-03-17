@@ -1,266 +1,198 @@
-import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
+import UserForm from "../components/UserForm";
+import UsersTable from "../components/UsersTable";
+
+import "../styles/dashboard.css";
 
 export default function Dashboard() {
-    const [formData, setFormData] = useState({
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    nome: "",
+    email: "",
+    senha: "",
+    data_nascimento: "",
+    pais: "",
+    genero: "",
+  });
+
+  const [message, setMessage] = useState("");
+  const [users, setUsers] = useState([]);
+  const [editingID, setEditingID] = useState(null);
+
+  function handleChange(event) {
+    const { name, value } = event.target;
+
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+
+    if (!editingID) return;
+
+    const url = `http://localhost:5000/users/${editingID}`;
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao atualizar usuário");
+      }
+
+      await response.json();
+
+      setMessage("Usuário editado com sucesso!");
+      setEditingID(null);
+
+      setTimeout(() => {
+        setMessage("");
+      }, 3000);
+
+      setFormData({
         nome: "",
         email: "",
         senha: "",
         data_nascimento: "",
         pais: "",
-        genero: ""
-    })
+        genero: "",
+      });
 
-    const navigate = useNavigate()
+      await fetchUsers();
+    } catch (error) {
+      console.error("Erro ao atualizar usuário", error);
+    }
+  }
 
-    const [message, setMessage] = useState("")
-    const [users, setUsers] = useState([])
-    const [editingID, setEditingID] = useState(null)
+  async function fetchUsers() {
+    try {
+      const token = localStorage.getItem("token");
 
-    function handleChange(event) {
-        const { name, value } = event.target
+      const response = await fetch("http://localhost:5000/users", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        setFormData({
-            ...formData,
-            [name]: value
-        })
+      if (response.status === 401) {
+        localStorage.removeItem("token");
+        return false;
+      }
+
+      const data = await response.json();
+      setUsers(data);
+
+      return true;
+    } catch (error) {
+      console.error("Erro ao buscar usuários", error);
+      return false;
+    }
+  }
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/");
+      return;
     }
 
-    async function handleSubmit(event) {
-        event.preventDefault()
+    async function loadUsers() {
+      const isAuthorized = await fetchUsers();
 
-        if(!editingID) return
-
-        const method = "PUT"
-        const url = `http://localhost:5000/users/${editingID}`
-
-        try {
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(formData),
-            })
-
-            const data = await response.json()
-
-            setMessage("Usuário editado com sucesso!")
-
-            setEditingID(null)
-
-            setTimeout(() => {
-                setMessage("")
-            }, 3000)
-
-            console.log(data)
-
-            setFormData({
-                nome: "",
-                email: "",
-                senha: "",
-                data_nascimento: "",
-                pais: "",
-                genero: ""
-            })
-
-            await fetchUsers()
-
-        } catch(error) {
-            console.error("Erro ao cadastrar usuário", error)
-        }
+      if (isAuthorized === false) {
+        navigate("/");
+      }
     }
 
-    async function fetchUsers() {
-        try {
+    loadUsers();
+  }, [navigate]);
 
-            const token = localStorage.getItem("token")
+  async function handleDelete(id) {
+    try {
+      const token = localStorage.getItem("token");
 
-            const response = await fetch("http://localhost:5000/users", {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }}
-            )
+      await fetch(`http://localhost:5000/users/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-            if(response.status === 401){
-                localStorage.removeItem("token")
-                return false
-            }
+      await fetchUsers();
 
-            const data = await response.json()
-            setUsers(data)
-            return true
-
-        } catch (error) {
-            console.error("Erro ao buscar usuários", error)
-            return false
-        }
+      setMessage("Usuário deletado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao deletar usuário", error);
     }
+  }
 
-    useEffect(() => {
+  function handleUpdate(user) {
+    setFormData({
+      nome: user.nome,
+      email: user.email,
+      senha: "",
+      data_nascimento: user.data_nascimento,
+      pais: user.pais,
+      genero: user.genero,
+    });
 
-        const token = localStorage.getItem("token")
+    setEditingID(user.id);
+  }
 
-        if(!token){
-            navigate("/")
-            return
-        }
+  function handleCancelEdit() {
+    setEditingID(null);
 
-        async function loadUsers() {
-            const isAuthorized = await fetchUsers()
-            if(isAuthorized === false)
-                navigate("/")
-        }
+    setFormData({
+      nome: "",
+      email: "",
+      senha: "",
+      data_nascimento: "",
+      pais: "",
+      genero: "",
+    });
+  }
 
-        loadUsers()
+  function handleLogout() {
+    localStorage.removeItem("token");
+    navigate("/");
+  }
 
-        }, [navigate])
+  return (
+    <div className="dashboard-container">
+      <button className="exit-button" onClick={handleLogout}>Sair</button>
 
-        async function handleDelete(id) {
-            try {
-                await fetch(`http://localhost:5000/users/${id}`, {
-                    method: "DELETE"
-                })
+      <h1>Dashboard de usuários</h1>
 
-                await fetchUsers()
+      {message && <p>{message}</p>}
 
-                setMessage("Usuário deletado com sucesso!")
+      <UserForm
+        formData={formData}
+        handleChange={handleChange}
+        handleSubmit={handleSubmit}
+        editingID={editingID}
+        handleCancelEdit={handleCancelEdit}
+      />
 
-            }catch(error) {
-                console.error("Erro ao deletar usuário", error)
-            }
-        }
-
-        async function handleUpdate(user) {
-            setFormData({
-                nome: user.nome,
-                email: user.email,
-                senha: "",
-                data_nascimento: user.data_nascimento,
-                pais: user.pais,
-                genero: user.genero
-            })
-
-            setEditingID(user.id)
-        }
-
-        async function handleCancelEdit(){
-            setEditingID(null)
-            
-            setFormData({
-                nome: "",
-                email: "",
-                senha: "",
-                data_nascimento: "",
-                pais: "",
-                genero: ""
-            })
-        }
-
-        function handleLogout(){
-            localStorage.removeItem("token")
-            navigate("/")
-        }
-
-    return (
-        <div>
-
-            <button onClick={handleLogout}>Sair</button>
-            <h1>Dashboard de usuários</h1>
-            {message && <p>{message}</p>}
-
-            <form onSubmit={handleSubmit}>
-                <input
-                    type="text"
-                    name="nome"
-                    placeholder="Nome"
-                    value={formData.nome}
-                    onChange={handleChange}
-                />
-
-                <input
-                    type="email"
-                    name="email"
-                    placeholder="E-mail"
-                    value={formData.email}
-                    onChange={handleChange}
-                />
-
-                <input
-                    type="password"
-                    name="senha"
-                    placeholder="Senha"
-                    value={formData.senha}
-                    onChange={handleChange}
-                />
-
-                <input
-                    type="date"
-                    name="data_nascimento"
-                    value={formData.data_nascimento}
-                    onChange={handleChange}
-                />
-
-                <input
-                    type="text"
-                    name="pais"
-                    placeholder="País"
-                    value={formData.pais}
-                    onChange={handleChange}
-                />
-
-                <select
-                    name="genero"
-                    value={formData.genero}
-                    onChange={handleChange}
-                >
-                    <option value="">Selecione o gênero</option>
-                    <option value="Masculino">Masculino</option>
-                    <option value="Feminino">Feminino</option>
-                    <option value="Outro">Outro</option>
-                </select>
-
-                <button type="submit" disabled={!editingID}>
-                    Salvar alterações
-                </button>
-
-                {editingID && (
-                    <button type="button" onClick={handleCancelEdit}>
-                        Cancelar edição
-                        </button>
-                )}
-            </form>
-
-            <h2>Usuários cadastrados</h2>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>E-mail</th>
-                        <th>Gênero</th>
-                        <th>País</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {users.map((user) => (
-                        <tr key={user.id}>
-                            <td>{user.nome}</td>
-                            <td>{user.email}</td>
-                            <td>{user.genero}</td>
-                            <td>{user.pais}</td>
-
-                            <td>
-                                    <button onClick={() => handleUpdate(user)}>Editar</button>
-                                    <button onClick={() => handleDelete(user.id)}>Excluir</button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-
-        </div>
-    )
+      <UsersTable
+        users={users}
+        handleUpdate={handleUpdate}
+        handleDelete={handleDelete}
+      />
+    </div>
+  );
 }

@@ -1,37 +1,71 @@
-# CRUD de usuários - FullStack
+# 👤 User Management System
 
-Projeto fullstack de gerenciamento de usuários com autenticação.
+Sistema FullStack para gerenciamento de usuários com autenticação, permitindo cadastro, login e operações CRUD.
 
-## Tecnologias utilizadas
+---
+
+## 🚀 Funcionalidades
+
+* 🔐 Autenticação com JWT
+* 👤 Cadastro de usuários
+* 📋 Listagem de usuários
+* ✏️ Edição de usuários
+* 🗑️ Exclusão de usuários
+* 🛡️ Dashboard protegido por token
+
+---
+
+📷 Preview do projeto
+
+<img width="1889" height="894" alt="image" src="https://github.com/user-attachments/assets/28150cab-847b-4b7c-a991-632be7fb98f9" />
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+### 🎨 Frontend
+
+* React
+* JavaScript
+* CSS3
+
+### ⚙️ Backend
+
+* Node.js
+* Express
+
+### 🗄️ Banco de Dados
+
+* MySQL
+
+### 🔒 Segurança
+
+* JWT e bcrypt
+
+---
+
+## 📂 Estrutura do Projeto
 
 ### Frontend
-- React
-- JavaScript
-- CSS
+
+* Interface desenvolvida em React
+* Componentes reutilizáveis
+* Páginas do sistema
 
 ### Backend
-- Node.js
-- Express
-- MySQL
-- JWT (autenticação)
 
-## Funcionalidades
+* API REST com Express
+* Rotas para autenticação e gerenciamento de usuários
+* Integração com banco de dados MySQL
 
-- Cadastro de usuários
-- Login com autenticação
-- Dashboard protegido por token
-- Listagem de usuários
-- Edição de usuários
-- Exclusão de usuários
+---
 
-## Estrutura do projeto
+## 🎯 Objetivo
 
-frontend/
-- aplicação React
-- componentes
-- páginas do sistema
+Este projeto foi desenvolvido para praticar conceitos de desenvolvimento FullStack, autenticação de usuários, integração entre frontend e backend e operações CRUD utilizando banco de dados.
 
-backend/
-- servidor Node.js
-- rotas da API
-- conexão com banco de dados
+---
+
+## 👨‍💻 Autor
+
+Desenvolvido por Bruno Di Palma

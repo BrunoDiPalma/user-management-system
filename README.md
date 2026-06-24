@@ -15,7 +15,7 @@ Sistema FullStack para gerenciamento de usuários com autenticação, permitindo
 
 ---
 
-📷 Preview do projeto
+## 📷 Preview do projeto
 
 <img width="1889" height="894" alt="image" src="https://github.com/user-attachments/assets/28150cab-847b-4b7c-a991-632be7fb98f9" />
 

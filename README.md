@@ -1,6 +1,6 @@
 # 👤 User Management System
 
-Sistema FullStack para gerenciamento de usuários com autenticação, permitindo cadastro, login e operações CRUD.
+Sistema full stack para gerenciamento de usuários com autenticação, permitindo cadastro, login e operações CRUD.
 
 ---
 
@@ -23,13 +23,13 @@ Sistema FullStack para gerenciamento de usuários com autenticação, permitindo
 
 ## 🛠️ Tecnologias Utilizadas
 
-### 🎨 Frontend
+### 🎨 Front-end
 
 * React
 * JavaScript
 * CSS3
 
-### ⚙️ Backend
+### ⚙️ Back-end
 
 * Node.js
 * Express
@@ -46,13 +46,13 @@ Sistema FullStack para gerenciamento de usuários com autenticação, permitindo
 
 ## 📂 Estrutura do Projeto
 
-### Frontend
+### Front-end
 
 * Interface desenvolvida em React
 * Componentes reutilizáveis
 * Páginas do sistema
 
-### Backend
+### Back-end
 
 * API REST com Express
 * Rotas para autenticação e gerenciamento de usuários
@@ -62,7 +62,7 @@ Sistema FullStack para gerenciamento de usuários com autenticação, permitindo
 
 ## 🎯 Objetivo
 
-Este projeto foi desenvolvido para praticar conceitos de desenvolvimento FullStack, autenticação de usuários, integração entre frontend e backend e operações CRUD utilizando banco de dados.
+Este projeto foi desenvolvido para praticar conceitos de desenvolvimento full stack, autenticação de usuários, integração entre front-end e back-end e operações CRUD utilizando banco de dados.
 
 ---
 
